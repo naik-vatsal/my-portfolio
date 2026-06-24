@@ -544,6 +544,7 @@ function StoryModal({ onClose }) {
 
 function NavBar({ active }) {
   const [storyOpen, setStoryOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const items = [
     { id: "home", label: "HOME" },
@@ -553,6 +554,7 @@ function NavBar({ active }) {
   ];
   const go = (id) => {
     playSound("nav");
+    setMenuOpen(false);
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -561,6 +563,7 @@ function NavBar({ active }) {
     <>
       <div style={{ borderBottom: `1px solid ${C.line}`, background: C.bg }} className="sticky top-0 z-20">
         <div className="max-w-5xl mx-auto px-5 flex items-center justify-between h-14">
+          {/* Logo */}
           <button
             onClick={() => go("home")}
             style={{ fontFamily: FONT_DISPLAY, color: C.paper, letterSpacing: "0.02em" }}
@@ -568,7 +571,9 @@ function NavBar({ active }) {
           >
             V.NAIK<span style={{ color: C.ferrari }}>/</span>
           </button>
-          <div className="flex items-center gap-1" style={{ fontFamily: FONT_MONO }}>
+
+          {/* Desktop nav - hidden on mobile */}
+          <div className="hidden sm:flex items-center gap-1" style={{ fontFamily: FONT_MONO }}>
             {items.map((item) => (
               <button
                 key={item.id}
@@ -582,7 +587,6 @@ function NavBar({ active }) {
                 )}
               </button>
             ))}
-            {/* MY STORY */}
             <button
               onClick={() => { playSound("expand"); setStoryOpen(true); }}
               className="relative px-3 py-2 text-[11px] tracking-widest transition-colors hover:text-white"
@@ -590,7 +594,6 @@ function NavBar({ active }) {
             >
               MY STORY
             </button>
-            {/* RESUME */}
             <a
               href="/Vatsal_Naik_Resume.pdf"
               target="_blank"
@@ -602,7 +605,57 @@ function NavBar({ active }) {
               RESUME <ArrowUpRight size={10} />
             </a>
           </div>
+
+          {/* Mobile nav - hamburger + RESUME pill */}
+          <div className="flex sm:hidden items-center gap-2">
+            <a
+              href="/Vatsal_Naik_Resume.pdf"
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontFamily: FONT_MONO, background: C.ferrari, color: C.paper }}
+              className="px-3 py-1.5 text-[11px] tracking-widest hover:brightness-110 transition inline-flex items-center gap-1"
+            >
+              RESUME <ArrowUpRight size={10} />
+            </a>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              style={{ color: C.mute, padding: "6px" }}
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? <X size={20} /> : (
+                <svg width={20} height={20} viewBox="0 0 20 20" fill="currentColor">
+                  <rect x="2" y="5" width="16" height="2" rx="1" />
+                  <rect x="2" y="9" width="16" height="2" rx="1" />
+                  <rect x="2" y="13" width="16" height="2" rx="1" />
+                </svg>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile dropdown */}
+        {menuOpen && (
+          <div style={{ borderTop: `1px solid ${C.line}`, background: C.bg }} className="sm:hidden">
+            {items.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => go(item.id)}
+                className="w-full text-left px-5 py-3 text-[11px] tracking-widest transition-colors flex items-center justify-between"
+                style={{ fontFamily: FONT_MONO, color: active === item.id ? C.paper : C.mute, borderBottom: `1px solid ${C.lineFaint}` }}
+              >
+                {item.label}
+                {active === item.id && <span style={{ width: 6, height: 6, background: C.ferrari, display: "inline-block" }} />}
+              </button>
+            ))}
+            <button
+              onClick={() => { playSound("expand"); setMenuOpen(false); setStoryOpen(true); }}
+              className="w-full text-left px-5 py-3 text-[11px] tracking-widest transition-colors"
+              style={{ fontFamily: FONT_MONO, color: C.mute }}
+            >
+              MY STORY
+            </button>
+          </div>
+        )}
       </div>
       {storyOpen && <StoryModal onClose={() => setStoryOpen(false)} />}
     </>
@@ -660,8 +713,8 @@ function FloatingContact() {
       href="mailto:naikvatsal7@gmail.com"
       style={{
         position: "fixed",
-        left: 16,
-        bottom: 16,
+        left: "calc(16px + env(safe-area-inset-left, 0px))",
+        bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
         zIndex: 30,
         background: C.ferrari,
         color: C.paper,
@@ -700,8 +753,8 @@ function FifaBadge() {
         onClick={() => setOpen(true)}
         style={{
           position: "fixed",
-          right: 16,
-          bottom: 16,
+          right: "calc(16px + env(safe-area-inset-right, 0px))",
+          bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
           zIndex: 30,
           background: hasLive ? C.ferrariDim : C.panel,
           border: `1px solid ${hasLive ? C.ferrari : C.line}`,
@@ -1123,8 +1176,10 @@ export default function App() {
     <div style={{ background: C.bg, minHeight: "100vh" }} className="w-full">
       <style>{`
         * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { margin: 0; }
+        html { scroll-behavior: smooth; overflow-x: hidden; }
+        body { margin: 0; overflow-x: hidden; width: 100%; }
+        /* iOS safe area support */
+        :root { --sat: env(safe-area-inset-top, 0px); --sar: env(safe-area-inset-right, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); }
         #home, #about, #experience, #projects, #excites { scroll-margin-top: 56px; }
         ::selection { background: ${C.ferrari}; color: ${C.paper}; }
         a, button { -webkit-tap-highlight-color: transparent; }
@@ -1147,6 +1202,15 @@ export default function App() {
         .card-lift::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: ${C.ferrari}; transform: scaleX(0); transform-origin: left; transition: transform 0.25s ease; pointer-events: none; z-index: 1; }
         .card-lift:hover { transform: translateY(-4px); box-shadow: 0 14px 28px -16px rgba(0,0,0,0.7), 0 6px 12px -6px rgba(0,0,0,0.45); }
         .card-lift:hover::before { transform: scaleX(1); }
+        /* Disable hover effects on touch devices */
+        @media (hover: none) {
+          .card-lift:hover { transform: none; box-shadow: none; }
+          .card-lift:hover::before { transform: scaleX(0); }
+        }
+        /* Mobile: pad bottom so floating buttons never overlap content */
+        @media (max-width: 639px) {
+          main { padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+        }
         body.custom-cursor-active, body.custom-cursor-active * { cursor: none !important; }
         .cursor-dot, .cursor-ring { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; border-radius: 9999px; }
         .cursor-dot { width: 8px; height: 8px; background: ${C.paper}; mix-blend-mode: difference; }
