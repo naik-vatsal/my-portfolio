@@ -198,20 +198,26 @@ const HOBBIES = [
 ];
 
 const FIFA_FALLBACK = {
-  lastUpdated: "JUN 19, 2026 3:45 PM EDT",
-  totalGoals: 22,
-  live: [{ home: "USA", away: "AUS", homeScore: 2, awayScore: 0 }],
+  lastUpdated: "JUN 24, 2026 — 6:00 PM EDT",
+  totalGoals: 21,
+  live: [
+    { home: "SCO", away: "BRA", homeScore: 0, awayScore: 1 },
+    { home: "MAR", away: "HTI", homeScore: 1, awayScore: 2 },
+  ],
   recent: [
-    { home: "CAN", away: "QAT", homeScore: 6, awayScore: 0 },
-    { home: "ENG", away: "CRO", homeScore: 4, awayScore: 2 },
-    { home: "SUI", away: "BIH", homeScore: 4, awayScore: 1 },
-    { home: "ARG", away: "DZA", homeScore: 3, awayScore: 0 },
+    { home: "SUI", away: "CAN", homeScore: 2, awayScore: 1 },
+    { home: "BIH", away: "QAT", homeScore: 3, awayScore: 1 },
+    { home: "POR", away: "UZB", homeScore: 5, awayScore: 0 },
+    { home: "ENG", away: "GHA", homeScore: 0, awayScore: 0 },
+    { home: "ARG", away: "AUT", homeScore: 2, awayScore: 0 },
+    { home: "FRA", away: "IRQ", homeScore: 3, awayScore: 0 },
   ],
   upcoming: [
-    { home: "BRA", away: "HTI", time: "TODAY 8:30 PM ET", favHome: 88.6 },
-    { home: "SCO", away: "MAR", time: "TODAY 6:00 PM ET", favHome: 16.2 },
-    { home: "NED", away: "SWE", time: "SAT 1:00 PM ET", favHome: 55 },
-    { home: "GER", away: "CIV", time: "SAT 4:00 PM ET", favHome: 62.8 },
+    { home: "CZE", away: "MEX", time: "TODAY 9:00 PM ET", favHome: 24.6 },
+    { home: "RSA", away: "KOR", time: "TODAY 9:00 PM ET", favHome: 16.5 },
+    { home: "ECU", away: "GER", time: "THU 4:00 PM ET", favHome: 23.7 },
+    { home: "TUN", away: "NED", time: "THU 7:00 PM ET", favHome: 3.2 },
+    { home: "TUR", away: "USA", time: "THU 10:00 PM ET", favHome: 26.4 },
   ],
 };
 
@@ -594,29 +600,10 @@ function NavBar({ active }) {
             >
               MY STORY
             </button>
-            <a
-              href="/Vatsal_Naik_Resume.pdf"
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => playSound("nav")}
-              style={{ fontFamily: FONT_MONO, background: C.ferrari, color: C.paper }}
-              className="ml-2 px-3 py-1.5 text-[11px] tracking-widest hover:brightness-110 transition inline-flex items-center gap-1"
-            >
-              RESUME <ArrowUpRight size={10} />
-            </a>
           </div>
 
-          {/* Mobile nav - hamburger + RESUME pill */}
+          {/* Mobile nav - hamburger */}
           <div className="flex sm:hidden items-center gap-2">
-            <a
-              href="/Vatsal_Naik_Resume.pdf"
-              target="_blank"
-              rel="noreferrer"
-              style={{ fontFamily: FONT_MONO, background: C.ferrari, color: C.paper }}
-              className="px-3 py-1.5 text-[11px] tracking-widest hover:brightness-110 transition inline-flex items-center gap-1"
-            >
-              RESUME <ArrowUpRight size={10} />
-            </a>
             <button
               onClick={() => setMenuOpen((v) => !v)}
               style={{ color: C.mute, padding: "6px" }}
@@ -736,10 +723,24 @@ function FifaBadge() {
 
   useEffect(() => {
     let active = true;
+    console.log("[FIFA] requesting /api/football");
     fetch("/api/football")
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then((json) => { if (active) setData(transformFifa(json)); })
-      .catch(() => { if (active) setData(FIFA_FALLBACK); })
+      .then((r) => {
+        console.log("[FIFA] /api/football responded:", r.status);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => {
+        console.log(
+          "[FIFA] live data received — matches:",
+          Array.isArray(json?.matches) ? json.matches.length : "(none)"
+        );
+        if (active) setData(transformFifa(json));
+      })
+      .catch((err) => {
+        console.warn("[FIFA] fetch failed, using hardcoded fallback:", err.message);
+        if (active) setData(FIFA_FALLBACK);
+      })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
@@ -910,9 +911,6 @@ function Footer() {
             </a>
             <a href="mailto:naikvatsal7@gmail.com" className="flex items-center gap-1.5 hover:text-white transition-colors" style={{ color: C.mute }}>
               <Mail size={14} /> EMAIL
-            </a>
-            <a href="/Vatsal_Naik_Resume.pdf" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-white transition-colors" style={{ color: C.mute }}>
-              <ArrowUpRight size={14} /> RESUME
             </a>
           </div>
         </div>
