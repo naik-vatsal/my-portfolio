@@ -3,7 +3,6 @@ import {
   Mail,
   ArrowUpRight,
   MapPin,
-  Car,
   Trophy,
   Target,
   Gamepad2,
@@ -13,6 +12,7 @@ import {
   Brain,
   Globe,
   Flag,
+  Users,
 } from "lucide-react";
 import vatsalPhoto from "./assets/vatsal.jpg";
 
@@ -198,11 +198,11 @@ const EDUCATION = [
 ];
 
 const HOBBIES = [
+  { icon: Trophy, label: "FOOTBALL (SOCCER)", note: "watch religiously, play casually" },
   { icon: Flag, label: "FORMULA 1", note: "Ferrari or nothing" },
-  { icon: Car, label: "CARS", note: "anything with a redline" },
-  { icon: Trophy, label: "FOOTBALL", note: "plays casually, watches religiously" },
-  { icon: Target, label: "BADMINTON", note: "weekend rallies" },
-  { icon: Gamepad2, label: "GAMING", note: "Valorant, competitive lobbies" },
+  { icon: Target, label: "PICKLEBALL", note: "recent obsession" },
+  { icon: Users, label: "CRICKET", note: "lifelong fan" },
+  { icon: Gamepad2, label: "GAMING", note: "competitive lobbies" },
 ];
 
 // Used while loading and as a fallback if /api/football fails. Normalized to
@@ -365,6 +365,117 @@ function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }) {
    targets. Skipped on touch devices and when the user has
    prefers-reduced-motion set.
 --------------------------------------------------------- */
+/* ---------------------------------------------------------
+   SOUND — short tones generated with the Web Audio API.
+   No asset files; everything is synthesized on the fly.
+--------------------------------------------------------- */
+let audioCtx = null;
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+function ensureAudio() {
+  if (audioCtx || prefersReducedMotion()) return audioCtx;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  } catch (e) {
+    audioCtx = null;
+  }
+  return audioCtx;
+}
+
+function blip(freqStart, freqEnd, durationMs, volume, delaySec = 0) {
+  try {
+    if (!audioCtx) return;
+    const t0 = audioCtx.currentTime + delaySec;
+    const dur = durationMs / 1000;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freqStart, t0);
+    if (freqEnd !== freqStart) {
+      osc.frequency.linearRampToValueAtTime(freqEnd, t0 + dur);
+    }
+    gain.gain.setValueAtTime(volume, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur);
+  } catch (e) {
+    /* no-op */
+  }
+}
+
+// type: "nav" | "expand" | "section"
+function playSound(type) {
+  if (prefersReducedMotion()) return;
+  try {
+    // nav/expand fire from a user gesture, so it's safe to create the context
+    // here. section pings come from an observer — only play if already unlocked.
+    if (type === "nav" || type === "expand") ensureAudio();
+    if (!audioCtx) return;
+    if (audioCtx.state === "suspended") audioCtx.resume();
+
+    if (type === "nav") {
+      blip(800, 800, 80, 0.08, 0);
+      blip(600, 600, 60, 0.08, 0.08);
+    } else if (type === "expand") {
+      blip(400, 600, 120, 0.06, 0);
+    } else if (type === "section") {
+      blip(1000, 1000, 60, 0.05, 0);
+    }
+  } catch (e) {
+    /* no-op */
+  }
+}
+
+function ScrollProgress() {
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const max = document.body.scrollHeight - window.innerHeight;
+      setPct(max > 0 ? Math.min((window.scrollY / max) * 100, 100) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 2,
+        zIndex: 50,
+        pointerEvents: "none",
+      }}
+    >
+      <div
+        style={{
+          height: "100%",
+          width: `${pct}%`,
+          background: C.ferrari,
+          transition: "width 0.1s linear",
+        }}
+      />
+    </div>
+  );
+}
+
 function CustomCursor() {
   const dotRef = useRef(null);
   const ringRef = useRef(null);
@@ -464,7 +575,7 @@ function StatusBar() {
   );
 }
 
-function NavBar({ page, setPage }) {
+function NavBar({ active }) {
   const items = [
     { id: "home", label: "HOME" },
     { id: "about", label: "ABOUT" },
@@ -472,8 +583,9 @@ function NavBar({ page, setPage }) {
     { id: "experience", label: "EXPERIENCE" },
   ];
   const go = (id) => {
-    setPage(id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    playSound("nav");
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
   return (
     <div style={{ borderBottom: `1px solid ${C.line}`, background: C.bg }} className="sticky top-0 z-20">
@@ -481,7 +593,7 @@ function NavBar({ page, setPage }) {
         <button
           onClick={() => go("home")}
           style={{ fontFamily: FONT_DISPLAY, color: C.paper, letterSpacing: "0.02em" }}
-          className="text-lg font-bold tracking-tight"
+          className="text-2xl font-bold tracking-tight"
         >
           V.NAIK<span style={{ color: C.ferrari }}>/</span>
         </button>
@@ -491,10 +603,10 @@ function NavBar({ page, setPage }) {
               key={item.id}
               onClick={() => go(item.id)}
               className="relative px-3 py-2 text-[11px] tracking-widest transition-colors"
-              style={{ color: page === item.id ? C.paper : C.mute }}
+              style={{ color: active === item.id ? C.paper : C.mute }}
             >
               {item.label}
-              {page === item.id && (
+              {active === item.id && (
                 <span
                   style={{
                     position: "absolute",
@@ -911,9 +1023,9 @@ function FifaBadge() {
 /* ---------------------------------------------------------
    PAGES
 --------------------------------------------------------- */
-function HomePage({ setPage }) {
+function HomePage() {
   return (
-    <div>
+    <div id="home">
       {/* HERO */}
       <div className="max-w-5xl mx-auto px-5 pt-12 sm:pt-20 pb-12 relative">
         <div
@@ -1041,8 +1153,10 @@ function HomePage({ setPage }) {
             </div>
             <button
               onClick={() => {
-                setPage("projects");
-                window.scrollTo({ top: 0, behavior: "smooth" });
+                playSound("nav");
+                document
+                  .getElementById("projects")
+                  ?.scrollIntoView({ behavior: "smooth" });
               }}
               style={{ fontFamily: FONT_MONO, color: C.ferrari }}
               className="text-sm tracking-widest flex items-center gap-1 hover:underline"
@@ -1156,7 +1270,7 @@ const CONTACTS = [
 
 function AboutPage() {
   return (
-    <div className="max-w-5xl mx-auto px-5">
+    <div id="about" className="max-w-5xl mx-auto px-5">
       {/* SECTION 1 — OVERVIEW */}
       <section className="py-16 sm:py-20">
         <Reveal>
@@ -1342,7 +1456,7 @@ function AboutPage() {
 function ProjectsPage() {
   const [open, setOpen] = useState(null);
   return (
-    <div className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
+    <div id="projects" className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
       <Reveal>
         <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
           SESSION LOG
@@ -1365,7 +1479,11 @@ function ProjectsPage() {
                 className="card-lift"
               >
                 <button
-                  onClick={() => setOpen(isOpen ? null : p.id)}
+                  onClick={() => {
+                    const willOpen = !isOpen;
+                    setOpen(willOpen ? p.id : null);
+                    if (willOpen) playSound("expand");
+                  }}
                   className="w-full text-left p-4 sm:p-5 flex items-center gap-4 sm:gap-6 group"
                 >
                   <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-sm shrink-0 w-6">
@@ -1429,7 +1547,7 @@ function ProjectsPage() {
 
 function ExperiencePage() {
   return (
-    <div className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
+    <div id="experience" className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
       <Reveal>
         <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
           SEASON HISTORY
@@ -1518,7 +1636,56 @@ function ExperiencePage() {
    APP
 --------------------------------------------------------- */
 export default function App() {
-  const [page, setPage] = useState("home");
+  const [active, setActive] = useState("home");
+
+  // Unlock the AudioContext on the first user interaction (click or scroll)
+  // so generated UI sounds respect browser autoplay policies.
+  useEffect(() => {
+    const unlock = () => ensureAudio();
+    window.addEventListener("click", unlock, { once: true });
+    window.addEventListener("scroll", unlock, { once: true, passive: true });
+    return () => {
+      window.removeEventListener("click", unlock);
+      window.removeEventListener("scroll", unlock);
+    };
+  }, []);
+
+  // Scroll-spy: drive the active nav item from viewport position, and play a
+  // one-time confirmation ping the first time each section enters view.
+  useEffect(() => {
+    const ids = ["home", "about", "projects", "experience"];
+    const nodes = ids.map((id) => document.getElementById(id)).filter(Boolean);
+    if (!nodes.length) return;
+
+    const activeObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        });
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
+    );
+    nodes.forEach((n) => activeObs.observe(n));
+
+    const seen = new Set();
+    const pingObs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !seen.has(entry.target.id)) {
+            seen.add(entry.target.id);
+            playSound("section");
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    nodes.forEach((n) => pingObs.observe(n));
+
+    return () => {
+      activeObs.disconnect();
+      pingObs.disconnect();
+    };
+  }, []);
 
   return (
     <div style={{ background: C.bg, minHeight: "100vh" }} className="w-full">
@@ -1527,6 +1694,7 @@ export default function App() {
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body { margin: 0; }
+        #home, #about, #projects, #experience { scroll-margin-top: 56px; }
         ::selection { background: ${C.ferrari}; color: ${C.paper}; }
         a, button { -webkit-tap-highlight-color: transparent; }
         button:focus-visible, a:focus-visible {
@@ -1543,7 +1711,6 @@ export default function App() {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        .page-enter { animation: fadeInUp 0.45s ease; }
         @media (prefers-reduced-motion: reduce) {
           * { animation: none !important; transition: none !important; }
         }
@@ -1625,18 +1792,19 @@ export default function App() {
         }
       `}</style>
 
+      <ScrollProgress />
       <CustomCursor />
       <StatusBar />
-      <NavBar page={page} setPage={setPage} />
+      <NavBar active={active} />
 
-      <div key={page} className="page-enter">
-        {page === "home" && <HomePage setPage={setPage} />}
-        {page === "about" && <AboutPage />}
-        {page === "projects" && <ProjectsPage />}
-        {page === "experience" && <ExperiencePage />}
-      </div>
+      <main>
+        <HomePage />
+        <AboutPage />
+        <ProjectsPage />
+        <ExperiencePage />
+      </main>
 
-      {page === "home" && <FifaBadge />}
+      <FifaBadge />
 
       <Footer />
     </div>
