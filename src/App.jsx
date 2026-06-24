@@ -845,18 +845,6 @@ function Footer() {
   return (
     <div style={{ borderTop: `1px solid ${C.line}` }} className="mt-20">
       <div className="max-w-5xl mx-auto px-5 py-12">
-        {/* CURRENTLY + chips */}
-        <div className="mb-8">
-          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-2">CURRENTLY</div>
-          <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-2xl sm:text-3xl font-semibold mb-4">
-            Looking for backend and AI engineering roles.
-          </div>
-          <div className="flex gap-3 flex-wrap">
-            <Chip tone="ferrari">OPEN TO WORK</Chip>
-            <Chip tone="mute">BOSTON, MA</Chip>
-            <Chip tone="redbull">F-1 OPT / STEM</Chip>
-          </div>
-        </div>
 
         <div style={{ borderTop: `1px solid ${C.lineFaint}`, color: C.muteDim, fontFamily: FONT_MONO }} className="mt-6 pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-[11px]">
           <span>© {new Date().getFullYear()} VATSAL SANDEEP NAIK</span>
@@ -898,6 +886,15 @@ function HomePage() {
             <p style={{ color: C.mute, fontFamily: FONT_BODY }} className="mt-5 text-base sm:text-lg max-w-md leading-relaxed">
               I build distributed systems that don't go down. Four years shipping production infrastructure solo, end to end.
             </p>
+            <div className="mt-5">
+              <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">CURRENTLY</div>
+              <div style={{ fontFamily: FONT_BODY, color: C.paper }} className="text-sm mb-3">
+                Looking for backend and AI engineering roles.
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Chip tone="ferrari">OPEN TO WORK</Chip>
+              </div>
+            </div>
           </div>
           <div className="shrink-0 relative" style={{ width: 220, height: 250 }}>
             <div aria-hidden className="blob-float-a" style={{ position: "absolute", top: 0, left: -24, width: 180, height: 200, background: C.ferrari, opacity: 0.15, borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%", filter: "blur(0.5px) drop-shadow(0 12px 24px rgba(179,20,47,0.25))" }} />
