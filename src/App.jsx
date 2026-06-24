@@ -11,6 +11,7 @@ import {
   Radio,
   X,
 } from "lucide-react";
+import vatsalPhoto from "./assets/vatsal.jpg";
 
 /* ---------------------------------------------------------
    BRAND ICONS
@@ -121,6 +122,36 @@ const PROJECTS = [
     link: "https://github.com/naik-vatsal/simplicloud",
     linkLabel: "Repository",
   },
+  {
+    id: "05",
+    name: "AlphaPortfolio",
+    tag: "AI / RL",
+    result: "Multi-agent RL system with Double DQN + UCB bandit orchestration",
+    desc: "Autonomous portfolio management system combining Double DQN reinforcement learning with a UCB bandit orchestrator to dynamically allocate across assets. Agents learn from market signals and adapt strategies without human intervention.",
+    stack: ["Python", "PyTorch", "Reinforcement Learning", "Double DQN"],
+    link: "https://github.com/naik-vatsal/alphaportfolio-",
+    linkLabel: "Repository",
+  },
+  {
+    id: "06",
+    name: "DataSherlock",
+    tag: "AI Systems",
+    result: "4-agent CSV analysis pipeline powered by CrewAI",
+    desc: "Multi-agent data analysis pipeline built on CrewAI that ingests raw CSV data and routes through specialized agents for cleaning, analysis, insight generation, and reporting. Fully autonomous from upload to output.",
+    stack: ["Python", "CrewAI", "LangChain", "Pandas"],
+    link: "https://github.com/naik-vatsal/datasherlock",
+    linkLabel: "Repository",
+  },
+  {
+    id: "07",
+    name: "Remarq",
+    tag: "Product",
+    result: "AI-powered Chrome extension deployed to the Web Store",
+    desc: "Chrome extension that generates contextual AI comments based on selected text on any webpage. Deployed to the Chrome Web Store with a React frontend and LLM-powered inference backend.",
+    stack: ["React", "Chrome Extension", "LangChain", "REST API"],
+    link: "https://github.com/naik-vatsal/Remarq",
+    linkLabel: "Repository",
+  },
 ];
 
 const EXPERIENCE = [
@@ -171,9 +202,12 @@ const HOBBIES = [
   { icon: Gamepad2, label: "GAMING", note: "Valorant, competitive lobbies" },
 ];
 
-const FIFA_DATA = {
+// Used while loading and as a fallback if /api/football fails. Normalized to
+// the same shape transformFifa() produces: `live` is an array, plus totalGoals.
+const FIFA_FALLBACK = {
   lastUpdated: "JUN 19, 2026 — 3:45 PM EDT",
-  live: { home: "USA", away: "AUS", homeScore: 2, awayScore: 0 },
+  totalGoals: 22,
+  live: [{ home: "USA", away: "AUS", homeScore: 2, awayScore: 0 }],
   recent: [
     { home: "CAN", away: "QAT", homeScore: 6, awayScore: 0 },
     { home: "ENG", away: "CRO", homeScore: 4, awayScore: 2 },
@@ -187,6 +221,69 @@ const FIFA_DATA = {
     { home: "GER", away: "CIV", time: "SAT 4:00 PM ET", favHome: 62.8 },
   ],
 };
+
+const teamCode = (t) => t?.tla || t?.shortName || t?.name || "TBD";
+
+function formatKickoff(utcDate) {
+  if (!utcDate) return "TBD";
+  return (
+    new Date(utcDate)
+      .toLocaleString("en-US", {
+        weekday: "short",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "America/New_York",
+      })
+      .toUpperCase() + " ET"
+  );
+}
+
+// Shapes the football-data.org /competitions/WC/matches payload into the
+// structure FifaBadge renders, and tallies total goals across the tournament.
+function transformFifa(api) {
+  const matches = Array.isArray(api?.matches) ? api.matches : [];
+  const live = [];
+  const finished = [];
+  const scheduled = [];
+  let totalGoals = 0;
+
+  for (const m of matches) {
+    const home = teamCode(m.homeTeam);
+    const away = teamCode(m.awayTeam);
+    const hs = m.score?.fullTime?.home;
+    const as = m.score?.fullTime?.away;
+    if (typeof hs === "number") totalGoals += hs;
+    if (typeof as === "number") totalGoals += as;
+
+    if (m.status === "IN_PLAY" || m.status === "PAUSED") {
+      live.push({ home, away, homeScore: hs ?? 0, awayScore: as ?? 0 });
+    } else if (m.status === "FINISHED") {
+      finished.push({ home, away, homeScore: hs ?? 0, awayScore: as ?? 0, date: m.utcDate });
+    } else {
+      scheduled.push({ home, away, time: formatKickoff(m.utcDate), date: m.utcDate });
+    }
+  }
+
+  finished.sort((a, b) => new Date(b.date) - new Date(a.date));
+  scheduled.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  return {
+    lastUpdated:
+      new Date()
+        .toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "America/New_York",
+        })
+        .toUpperCase() + " ET",
+    totalGoals,
+    live,
+    recent: finished.slice(0, 4),
+    upcoming: scheduled.slice(0, 4),
+  };
+}
 
 /* ---------------------------------------------------------
    HOOKS / PRIMITIVES
@@ -484,6 +581,32 @@ function Footer() {
 
 function FifaBadge() {
   const [open, setOpen] = useState(false);
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/football")
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((json) => {
+        if (active) setData(transformFifa(json));
+      })
+      .catch(() => {
+        if (active) setData(FIFA_FALLBACK);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const fifa = data || FIFA_FALLBACK;
+
   return (
     <>
       <button
@@ -540,7 +663,7 @@ function FifaBadge() {
                   FIFA WORLD CUP 2026
                 </div>
                 <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-0.5">
-                  UPDATED {FIFA_DATA.lastUpdated}
+                  UPDATED {fifa.lastUpdated}
                 </div>
               </div>
               <button onClick={() => setOpen(false)} style={{ color: C.mute }}>
@@ -548,82 +671,160 @@ function FifaBadge() {
               </button>
             </div>
 
-            <div className="p-5 space-y-6">
-              <div>
+            {loading ? (
+              <div
+                className="p-10 flex flex-col items-center justify-center gap-3"
+                style={{ color: C.mute, fontFamily: FONT_MONO }}
+              >
+                <span
+                  style={{ width: 8, height: 8, background: C.ferrari, animation: "pulse 1s ease-in-out infinite" }}
+                  className="inline-block"
+                />
+                <span className="text-[10px] tracking-widest">LOADING LIVE DATA…</span>
+              </div>
+            ) : (
+              <div className="p-5 space-y-6">
+                {/* TOURNAMENT STATS */}
                 <div
-                  style={{ fontFamily: FONT_MONO, color: C.muteDim }}
-                  className="text-[10px] tracking-widest mb-2 flex items-center gap-2"
+                  style={{ border: `1px solid ${C.line}`, background: C.panel }}
+                  className="grid grid-cols-2 divide-x"
                 >
-                  <span
-                    style={{ width: 6, height: 6, background: C.ferrari, animation: "pulse 1.6s ease-in-out infinite" }}
-                    className="inline-block"
-                  />
-                  LIVE NOW
+                  <div className="p-4" style={{ borderColor: C.line }}>
+                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] tracking-[0.2em] mb-1">
+                      TOTAL GOALS
+                    </div>
+                    <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-2xl font-medium tabular-nums">
+                      {fifa.totalGoals}
+                    </div>
+                  </div>
+                  <div className="p-4" style={{ borderColor: C.line }}>
+                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] tracking-[0.2em] mb-1">
+                      LIVE MATCHES
+                    </div>
+                    <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-2xl font-medium tabular-nums">
+                      {fifa.live.length}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ border: `1px solid ${C.line}`, background: C.panel }} className="p-4 flex items-center justify-between">
-                  <span style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-lg font-bold">
-                    {FIFA_DATA.live.home}
-                  </span>
-                  <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-2xl tabular-nums">
-                    {FIFA_DATA.live.homeScore} — {FIFA_DATA.live.awayScore}
-                  </span>
-                  <span style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-lg font-bold">
-                    {FIFA_DATA.live.away}
-                  </span>
-                </div>
-              </div>
 
-              <div>
-                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
-                  RECENT RESULTS
-                </div>
-                <div style={{ border: `1px solid ${C.line}` }}>
-                  {FIFA_DATA.recent.map((g, i) => (
+                {/* LIVE NOW */}
+                <div>
+                  <div
+                    style={{ fontFamily: FONT_MONO, color: C.muteDim }}
+                    className="text-[10px] tracking-widest mb-2 flex items-center gap-2"
+                  >
+                    <span
+                      style={{ width: 6, height: 6, background: C.ferrari, animation: "pulse 1.6s ease-in-out infinite" }}
+                      className="inline-block"
+                    />
+                    LIVE NOW
+                  </div>
+                  {fifa.live.length === 0 ? (
                     <div
-                      key={i}
-                      style={{ borderTop: i === 0 ? "none" : `1px solid ${C.line}` }}
-                      className="flex items-center justify-between px-3 py-2.5"
+                      style={{ border: `1px solid ${C.line}`, background: C.panel, color: C.muteDim, fontFamily: FONT_MONO }}
+                      className="p-4 text-[11px] tracking-widest text-center"
                     >
-                      <span style={{ fontFamily: FONT_MONO, color: C.mute }} className="text-xs">
-                        {g.home}
-                      </span>
-                      <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs tabular-nums">
-                        {g.homeScore} — {g.awayScore}
-                      </span>
-                      <span style={{ fontFamily: FONT_MONO, color: C.mute }} className="text-xs">
-                        {g.away}
-                      </span>
+                      NO MATCHES LIVE RIGHT NOW
                     </div>
-                  ))}
+                  ) : (
+                    <div className="space-y-px" style={{ background: C.line }}>
+                      {fifa.live.map((g, i) => (
+                        <div
+                          key={i}
+                          style={{ background: C.panel }}
+                          className="p-4 flex items-center justify-between"
+                        >
+                          <span style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-lg font-bold">
+                            {g.home}
+                          </span>
+                          <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-2xl tabular-nums">
+                            {g.homeScore} — {g.awayScore}
+                          </span>
+                          <span style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-lg font-bold">
+                            {g.away}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              <div>
-                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
-                  UPCOMING
-                </div>
-                <div className="space-y-3">
-                  {FIFA_DATA.upcoming.map((g, i) => (
-                    <div key={i} style={{ border: `1px solid ${C.line}`, background: C.panel }} className="p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs">
-                          {g.home} vs {g.away}
-                        </span>
-                        <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px]">
-                          {g.time}
-                        </span>
-                      </div>
-                      <div style={{ background: C.lineFaint, height: 4 }} className="w-full overflow-hidden">
-                        <div style={{ background: C.ferrari, width: `${g.favHome}%`, height: "100%" }} />
-                      </div>
-                      <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-1">
-                        {g.home} favored {g.favHome}%
-                      </div>
+                {/* RECENT RESULTS */}
+                <div>
+                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
+                    RECENT RESULTS
+                  </div>
+                  {fifa.recent.length === 0 ? (
+                    <div
+                      style={{ border: `1px solid ${C.line}`, color: C.muteDim, fontFamily: FONT_MONO }}
+                      className="p-3 text-[11px] tracking-widest text-center"
+                    >
+                      NO RESULTS YET
                     </div>
-                  ))}
+                  ) : (
+                    <div style={{ border: `1px solid ${C.line}` }}>
+                      {fifa.recent.map((g, i) => (
+                        <div
+                          key={i}
+                          style={{ borderTop: i === 0 ? "none" : `1px solid ${C.line}` }}
+                          className="flex items-center justify-between px-3 py-2.5"
+                        >
+                          <span style={{ fontFamily: FONT_MONO, color: C.mute }} className="text-xs">
+                            {g.home}
+                          </span>
+                          <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs tabular-nums">
+                            {g.homeScore} — {g.awayScore}
+                          </span>
+                          <span style={{ fontFamily: FONT_MONO, color: C.mute }} className="text-xs">
+                            {g.away}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* UPCOMING */}
+                <div>
+                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
+                    UPCOMING
+                  </div>
+                  {fifa.upcoming.length === 0 ? (
+                    <div
+                      style={{ border: `1px solid ${C.line}`, color: C.muteDim, fontFamily: FONT_MONO }}
+                      className="p-3 text-[11px] tracking-widest text-center"
+                    >
+                      NO UPCOMING MATCHES
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {fifa.upcoming.map((g, i) => (
+                        <div key={i} style={{ border: `1px solid ${C.line}`, background: C.panel }} className="p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs">
+                              {g.home} vs {g.away}
+                            </span>
+                            <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px]">
+                              {g.time}
+                            </span>
+                          </div>
+                          {g.favHome != null && (
+                            <>
+                              <div style={{ background: C.lineFaint, height: 4 }} className="w-full overflow-hidden">
+                                <div style={{ background: C.ferrari, width: `${g.favHome}%`, height: "100%" }} />
+                              </div>
+                              <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-1">
+                                {g.home} favored {g.favHome}%
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -670,32 +871,22 @@ function HomePage({ setPage }) {
             </p>
           </div>
 
-          {/* photo / ID badge frame */}
+          {/* photo */}
           <div className="shrink-0">
-            <div
-              style={{ border: `1px solid ${C.line}`, background: C.panel, width: 152, height: 190 }}
-              className="relative flex items-center justify-center overflow-hidden"
-            >
-              <div
-                aria-hidden
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundImage: `repeating-linear-gradient(135deg, ${C.lineFaint} 0px, ${C.lineFaint} 1px, transparent 1px, transparent 10px)`,
-                }}
-              />
-              <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="relative text-[9px] tracking-widest text-center px-3">
-                PHOTO
-                <br />
-                PENDING
-              </span>
-              <div
-                style={{ borderTop: `1px solid ${C.line}`, fontFamily: FONT_MONO, color: C.redbullLight }}
-                className="absolute bottom-0 left-0 right-0 text-[9px] tracking-widest text-center py-1.5"
-              >
-                ID — V.S.N
-              </div>
-            </div>
+            <img
+              src={vatsalPhoto}
+              alt="Vatsal Naik"
+              width={152}
+              height={190}
+              style={{
+                width: 152,
+                height: 190,
+                objectFit: "cover",
+                border: `1px solid ${C.panel}`,
+                borderRadius: 0,
+                display: "block",
+              }}
+            />
           </div>
         </div>
       </div>
