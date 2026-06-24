@@ -356,6 +356,77 @@ function AnimatedNumber({ value, decimals = 0, prefix = "", suffix = "" }) {
 }
 
 /* ---------------------------------------------------------
+   CUSTOM CURSOR
+   Small dot follows the mouse 1:1. Larger ring trails with
+   easing. Ring scales + turns ferrari red over interactive
+   targets. Skipped on touch devices and when the user has
+   prefers-reduced-motion set.
+--------------------------------------------------------- */
+function CustomCursor() {
+  const dotRef = useRef(null);
+  const ringRef = useRef(null);
+  const target = useRef({ x: 0, y: 0 });
+  const ring = useRef({ x: 0, y: 0 });
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    // touch device → skip entirely
+    const isTouch =
+      window.matchMedia("(hover: none)").matches ||
+      "ontouchstart" in window;
+    if (isTouch) return;
+    // reduced motion → skip the trailing animation entirely
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    setEnabled(true);
+    document.body.classList.add("custom-cursor-active");
+
+    const onMove = (e) => {
+      target.current.x = e.clientX;
+      target.current.y = e.clientY;
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+      }
+      // hover detection for interactive targets
+      const el = e.target;
+      const interactive =
+        el && el.closest && el.closest('a, button, [role="button"], input, textarea, select, label');
+      if (ringRef.current) {
+        ringRef.current.dataset.hover = interactive ? "1" : "0";
+      }
+    };
+
+    let raf;
+    const tick = () => {
+      // lerp the ring toward the mouse for the trailing feel
+      ring.current.x += (target.current.x - ring.current.x) * 0.18;
+      ring.current.y += (target.current.y - ring.current.y) * 0.18;
+      if (ringRef.current) {
+        ringRef.current.style.transform = `translate3d(${ring.current.x}px, ${ring.current.y}px, 0) translate(-50%, -50%)`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+      document.body.classList.remove("custom-cursor-active");
+    };
+  }, []);
+
+  if (!enabled) return null;
+  return (
+    <>
+      <div ref={ringRef} className="cursor-ring" aria-hidden />
+      <div ref={dotRef} className="cursor-dot" aria-hidden />
+    </>
+  );
+}
+
+/* ---------------------------------------------------------
    LAYOUT PIECES
 --------------------------------------------------------- */
 function StatusBar() {
@@ -452,8 +523,9 @@ function TelemetryStrip() {
             borderColor: C.line,
             borderTopWidth: i >= 2 ? 1 : 0,
             borderTopStyle: "solid",
+            background: C.panel,
           }}
-          className="p-4 sm:p-5"
+          className="p-4 sm:p-5 card-lift"
         >
           <div
             style={{ fontFamily: FONT_MONO, color: i % 2 === 0 ? C.ferrari : C.redbullLight }}
@@ -482,7 +554,7 @@ function HobbiesStrip() {
       {HOBBIES.map((h, i) => {
         const Icon = h.icon;
         return (
-          <div key={h.label} style={{ background: C.panel }} className="p-4 sm:p-5 flex flex-col gap-2">
+          <div key={h.label} style={{ background: C.panel }} className="p-4 sm:p-5 flex flex-col gap-2 card-lift">
             <Icon size={18} style={{ color: i % 2 === 0 ? C.ferrari : C.redbullLight }} />
             <div style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs tracking-widest">
               {h.label}
@@ -520,7 +592,7 @@ function Footer() {
       <div className="max-w-5xl mx-auto px-5 py-12">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-8">
           <div>
-            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
+            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-2">
               CURRENTLY
             </div>
             <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-2xl sm:text-3xl font-semibold">
@@ -624,7 +696,7 @@ function FifaBadge() {
         className="flex items-center gap-2 pl-3 pr-4 py-2.5 shadow-lg hover:border-white/30 transition-colors"
       >
         <Radio size={14} style={{ color: C.ferrari }} />
-        <span className="text-[10px] tracking-widest">WC26</span>
+        <span className="text-xs tracking-widest">WC26</span>
         <span
           style={{
             width: 6,
@@ -659,7 +731,7 @@ function FifaBadge() {
               className="sticky top-0 flex items-center justify-between px-5 py-4"
             >
               <div>
-                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-[10px] tracking-widest">
+                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest">
                   FIFA WORLD CUP 2026
                 </div>
                 <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-0.5">
@@ -680,7 +752,7 @@ function FifaBadge() {
                   style={{ width: 8, height: 8, background: C.ferrari, animation: "pulse 1s ease-in-out infinite" }}
                   className="inline-block"
                 />
-                <span className="text-[10px] tracking-widest">LOADING LIVE DATA…</span>
+                <span className="text-xs tracking-widest">LOADING LIVE DATA…</span>
               </div>
             ) : (
               <div className="p-5 space-y-6">
@@ -711,7 +783,7 @@ function FifaBadge() {
                 <div>
                   <div
                     style={{ fontFamily: FONT_MONO, color: C.muteDim }}
-                    className="text-[10px] tracking-widest mb-2 flex items-center gap-2"
+                    className="text-xs tracking-widest mb-2 flex items-center gap-2"
                   >
                     <span
                       style={{ width: 6, height: 6, background: C.ferrari, animation: "pulse 1.6s ease-in-out infinite" }}
@@ -751,7 +823,7 @@ function FifaBadge() {
 
                 {/* RECENT RESULTS */}
                 <div>
-                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
+                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-2">
                     RECENT RESULTS
                   </div>
                   {fifa.recent.length === 0 ? (
@@ -786,7 +858,7 @@ function FifaBadge() {
 
                 {/* UPCOMING */}
                 <div>
-                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-2">
+                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-2">
                     UPCOMING
                   </div>
                   {fifa.upcoming.length === 0 ? (
@@ -871,20 +943,59 @@ function HomePage({ setPage }) {
             </p>
           </div>
 
-          {/* photo */}
-          <div className="shrink-0">
+          {/* photo — organic layered treatment */}
+          <div
+            className="shrink-0 relative"
+            style={{ width: 220, height: 250 }}
+            aria-hidden={false}
+          >
+            {/* blob 1 — ferrari red, back layer */}
+            <div
+              aria-hidden
+              className="blob-float-a"
+              style={{
+                position: "absolute",
+                top: 8,
+                left: -12,
+                width: 180,
+                height: 200,
+                background: C.ferrari,
+                opacity: 0.15,
+                borderRadius: "47% 53% 70% 30% / 30% 43% 57% 70%",
+                filter: "blur(0.5px) drop-shadow(0 12px 24px rgba(179,20,47,0.25))",
+              }}
+            />
+            {/* blob 2 — red bull navy, mid layer */}
+            <div
+              aria-hidden
+              className="blob-float-b"
+              style={{
+                position: "absolute",
+                top: 22,
+                left: 28,
+                width: 190,
+                height: 210,
+                background: C.redbullLight,
+                opacity: 0.22,
+                borderRadius: "63% 37% 41% 59% / 56% 71% 29% 44%",
+                filter: "blur(0.5px) drop-shadow(0 10px 20px rgba(44,69,118,0.3))",
+              }}
+            />
+            {/* photo — organic mask, sits on top */}
             <img
               src={vatsalPhoto}
               alt="Vatsal Naik"
-              width={152}
-              height={190}
+              className="blob-float-c"
               style={{
-                width: 152,
-                height: 190,
+                position: "absolute",
+                top: 6,
+                left: 18,
+                width: 184,
+                height: 230,
                 objectFit: "cover",
-                border: `1px solid ${C.panel}`,
-                borderRadius: 0,
                 display: "block",
+                borderRadius: "58% 42% 52% 48% / 44% 56% 44% 56%",
+                filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.55))",
               }}
             />
           </div>
@@ -902,7 +1013,7 @@ function HomePage({ setPage }) {
       <div className="max-w-5xl mx-auto px-5 py-14 sm:py-20">
         <Reveal>
           <div className="max-w-2xl">
-            <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-[10px] tracking-widest mb-3">
+            <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-3">
               BRIEFING
             </div>
             <p style={{ color: C.paper, fontFamily: FONT_BODY }} className="text-lg sm:text-xl leading-relaxed">
@@ -921,7 +1032,7 @@ function HomePage({ setPage }) {
       <div className="max-w-5xl mx-auto px-5 pb-20">
         <Reveal>
           <div className="flex items-center justify-between mb-5">
-            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest">
+            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest">
               FEATURED WORK
             </div>
             <button
@@ -939,8 +1050,8 @@ function HomePage({ setPage }) {
         <div className="grid sm:grid-cols-3 gap-px" style={{ background: C.line }}>
           {PROJECTS.slice(0, 3).map((p, i) => (
             <Reveal key={p.id} delay={i * 0.08}>
-              <div style={{ background: C.panel }} className="p-5 h-full">
-                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-[10px] tracking-widest mb-2">
+              <div style={{ background: C.panel }} className="p-5 h-full card-lift">
+                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest mb-2">
                   {p.id} / {p.tag.toUpperCase()}
                 </div>
                 <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-2xl font-bold mb-2">
@@ -958,7 +1069,7 @@ function HomePage({ setPage }) {
       {/* OFF DUTY */}
       <div className="max-w-5xl mx-auto px-5 pb-20">
         <Reveal>
-          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-5">
+          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-5">
             OFF DUTY
           </div>
           <HobbiesStrip />
@@ -973,10 +1084,10 @@ function ProjectsPage() {
   return (
     <div className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
       <Reveal>
-        <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-[10px] tracking-widest mb-2">
+        <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
           SESSION LOG
         </div>
-        <h2 style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-4xl sm:text-5xl font-extrabold mb-10">
+        <h2 style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-[2.625rem] sm:text-[3.5rem] leading-[0.95] font-extrabold mb-10">
           PROJECT RESULTS
         </h2>
       </Reveal>
@@ -991,6 +1102,7 @@ function ProjectsPage() {
                   borderTop: i === 0 ? "none" : `1px solid ${C.line}`,
                   background: isOpen ? C.panel : "transparent",
                 }}
+                className="card-lift"
               >
                 <button
                   onClick={() => setOpen(isOpen ? null : p.id)}
@@ -1059,10 +1171,10 @@ function ExperiencePage() {
   return (
     <div className="max-w-5xl mx-auto px-5 py-12 sm:py-16">
       <Reveal>
-        <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-[10px] tracking-widest mb-2">
+        <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
           SEASON HISTORY
         </div>
-        <h2 style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-4xl sm:text-5xl font-extrabold mb-10">
+        <h2 style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-[2.625rem] sm:text-[3.5rem] leading-[0.95] font-extrabold mb-10">
           CAREER TIMELINE
         </h2>
       </Reveal>
@@ -1075,12 +1187,15 @@ function ExperiencePage() {
         <div className="space-y-10">
           {EXPERIENCE.map((e, i) => (
             <Reveal key={e.company + e.role} delay={i * 0.07}>
-              <div className="relative sm:pl-10">
+              <div
+                className="relative card-lift p-4 sm:p-5 sm:pl-10"
+                style={{ background: C.panel }}
+              >
                 <span
                   style={{ background: C.ferrari, top: 6 }}
                   className="absolute left-0 hidden sm:block w-[11px] h-[11px]"
                 />
-                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-1">
+                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-1">
                   {e.period}
                 </div>
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
@@ -1115,13 +1230,13 @@ function ExperiencePage() {
       {/* EDUCATION */}
       <Reveal delay={0.1}>
         <div style={{ borderTop: `1px solid ${C.line}` }} className="mt-14 pt-8">
-          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px] tracking-widest mb-4">
+          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-4">
             EDUCATION
           </div>
           <div className="grid sm:grid-cols-2 gap-px" style={{ background: C.line }}>
             {EDUCATION.map((ed) => (
-              <div key={ed.school} style={{ background: C.panel }} className="p-4">
-                <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-[10px] tracking-widest mb-1">
+              <div key={ed.school} style={{ background: C.panel }} className="p-4 card-lift">
+                <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-1">
                   {ed.period}
                 </div>
                 <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-lg font-bold">
@@ -1173,8 +1288,82 @@ export default function App() {
         ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: ${C.bg}; }
         ::-webkit-scrollbar-thumb { background: ${C.line}; }
+
+        /* hero photo: floating blob layers */
+        @keyframes blobFloatA {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-6px) translateX(2px); }
+        }
+        @keyframes blobFloatB {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(5px) translateX(-3px); }
+        }
+        @keyframes blobFloatC {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .blob-float-a { animation: blobFloatA 9s ease-in-out infinite; }
+        .blob-float-b { animation: blobFloatB 10s ease-in-out infinite; }
+        .blob-float-c { animation: blobFloatC 8s ease-in-out infinite; }
+
+        /* card lift on hover — tasteful, uniform across cards */
+        .card-lift {
+          position: relative;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          will-change: transform;
+        }
+        .card-lift::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: ${C.ferrari};
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.25s ease;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .card-lift:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 14px 28px -16px rgba(0,0,0,0.7), 0 6px 12px -6px rgba(0,0,0,0.45);
+        }
+        .card-lift:hover::before { transform: scaleX(1); }
+
+        /* custom cursor */
+        body.custom-cursor-active,
+        body.custom-cursor-active * { cursor: none !important; }
+        .cursor-dot, .cursor-ring {
+          position: fixed;
+          top: 0; left: 0;
+          pointer-events: none;
+          z-index: 9999;
+          border-radius: 9999px;
+        }
+        .cursor-dot {
+          width: 8px; height: 8px;
+          background: ${C.paper};
+          mix-blend-mode: difference;
+        }
+        .cursor-ring {
+          width: 32px; height: 32px;
+          border: 1.5px solid ${C.paper};
+          transition: width 0.2s ease, height 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+        .cursor-ring[data-hover="1"] {
+          width: 58px; height: 58px;
+          border-color: ${C.ferrari};
+          background: rgba(179,20,47,0.15);
+        }
+        @media (hover: none) {
+          .cursor-dot, .cursor-ring { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .cursor-dot, .cursor-ring { display: none; }
+        }
       `}</style>
 
+      <CustomCursor />
       <StatusBar />
       <NavBar page={page} setPage={setPage} />
 
