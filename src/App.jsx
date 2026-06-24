@@ -439,7 +439,7 @@ function StatusBar() {
       }}
       className="w-full"
     >
-      <div className="max-w-5xl mx-auto px-5 py-2 flex items-center justify-between text-[10px] sm:text-xs tracking-widest">
+      <div className="max-w-5xl mx-auto px-5 py-2 flex items-center justify-between text-xs tracking-widest">
         <div className="flex items-center gap-2" style={{ color: C.mute }}>
           <span
             style={{
@@ -529,7 +529,7 @@ function TelemetryStrip() {
         >
           <div
             style={{ fontFamily: FONT_MONO, color: i % 2 === 0 ? C.ferrari : C.redbullLight }}
-            className="text-[9px] tracking-[0.2em] mb-2"
+            className="text-xs tracking-widest mb-2"
           >
             {s.sector} — {s.label}
           </div>
@@ -579,7 +579,7 @@ function Chip({ children, tone = "mute" }) {
         border: `1px solid ${C.line}`,
         background: C.panel2,
       }}
-      className="text-[10px] tracking-wide px-2 py-1 inline-block"
+      className="text-xs tracking-wide px-2 py-1 inline-block"
     >
       {children}
     </span>
@@ -734,7 +734,7 @@ function FifaBadge() {
                 <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest">
                   FIFA WORLD CUP 2026
                 </div>
-                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-0.5">
+                <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs mt-0.5">
                   UPDATED {fifa.lastUpdated}
                 </div>
               </div>
@@ -762,7 +762,7 @@ function FifaBadge() {
                   className="grid grid-cols-2 divide-x"
                 >
                   <div className="p-4" style={{ borderColor: C.line }}>
-                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] tracking-[0.2em] mb-1">
+                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-[0.2em] mb-1">
                       TOTAL GOALS
                     </div>
                     <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-2xl font-medium tabular-nums">
@@ -770,7 +770,7 @@ function FifaBadge() {
                     </div>
                   </div>
                   <div className="p-4" style={{ borderColor: C.line }}>
-                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] tracking-[0.2em] mb-1">
+                    <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-[0.2em] mb-1">
                       LIVE MATCHES
                     </div>
                     <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-2xl font-medium tabular-nums">
@@ -876,7 +876,7 @@ function FifaBadge() {
                             <span style={{ fontFamily: FONT_MONO, color: C.paper }} className="text-xs">
                               {g.home} vs {g.away}
                             </span>
-                            <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[10px]">
+                            <span style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs">
                               {g.time}
                             </span>
                           </div>
@@ -885,7 +885,7 @@ function FifaBadge() {
                               <div style={{ background: C.lineFaint, height: 4 }} className="w-full overflow-hidden">
                                 <div style={{ background: C.ferrari, width: `${g.favHome}%`, height: "100%" }} />
                               </div>
-                              <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-[9px] mt-1">
+                              <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs mt-1">
                                 {g.home} favored {g.favHome}%
                               </div>
                             </>
@@ -955,13 +955,13 @@ function HomePage({ setPage }) {
               className="blob-float-a"
               style={{
                 position: "absolute",
-                top: 8,
-                left: -12,
+                top: 0,
+                left: -24,
                 width: 180,
                 height: 200,
                 background: C.ferrari,
                 opacity: 0.15,
-                borderRadius: "47% 53% 70% 30% / 30% 43% 57% 70%",
+                borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
                 filter: "blur(0.5px) drop-shadow(0 12px 24px rgba(179,20,47,0.25))",
               }}
             />
@@ -971,13 +971,13 @@ function HomePage({ setPage }) {
               className="blob-float-b"
               style={{
                 position: "absolute",
-                top: 22,
-                left: 28,
+                top: 44,
+                left: 44,
                 width: 190,
                 height: 210,
                 background: C.redbullLight,
                 opacity: 0.22,
-                borderRadius: "63% 37% 41% 59% / 56% 71% 29% 44%",
+                borderRadius: "71% 29% 45% 55% / 61% 39% 61% 39%",
                 filter: "blur(0.5px) drop-shadow(0 10px 20px rgba(44,69,118,0.3))",
               }}
             />
@@ -988,13 +988,13 @@ function HomePage({ setPage }) {
               className="blob-float-c"
               style={{
                 position: "absolute",
-                top: 6,
-                left: 18,
+                top: 12,
+                left: 20,
                 width: 184,
                 height: 230,
                 objectFit: "cover",
                 display: "block",
-                borderRadius: "58% 42% 52% 48% / 44% 56% 44% 56%",
+                borderRadius: "63% 37% 38% 62% / 49% 28% 72% 51%",
                 filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.55))",
               }}
             />
@@ -1013,7 +1013,7 @@ function HomePage({ setPage }) {
       <div className="max-w-5xl mx-auto px-5 py-14 sm:py-20">
         <Reveal>
           <div className="max-w-2xl">
-            <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-3">
+            <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-sm tracking-[0.2em] mb-3">
               BRIEFING
             </div>
             <p style={{ color: C.paper, fontFamily: FONT_BODY }} className="text-lg sm:text-xl leading-relaxed">
@@ -1032,7 +1032,7 @@ function HomePage({ setPage }) {
       <div className="max-w-5xl mx-auto px-5 pb-20">
         <Reveal>
           <div className="flex items-center justify-between mb-5">
-            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest">
+            <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-sm tracking-[0.2em]">
               FEATURED WORK
             </div>
             <button
@@ -1041,7 +1041,7 @@ function HomePage({ setPage }) {
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
               style={{ fontFamily: FONT_MONO, color: C.ferrari }}
-              className="text-[11px] tracking-widest flex items-center gap-1 hover:underline"
+              className="text-sm tracking-widest flex items-center gap-1 hover:underline"
             >
               ALL PROJECTS <ArrowUpRight size={12} />
             </button>
@@ -1051,13 +1051,13 @@ function HomePage({ setPage }) {
           {PROJECTS.slice(0, 3).map((p, i) => (
             <Reveal key={p.id} delay={i * 0.08}>
               <div style={{ background: C.panel }} className="p-5 h-full card-lift">
-                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest mb-2">
+                <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-sm tracking-widest mb-2">
                   {p.id} / {p.tag.toUpperCase()}
                 </div>
-                <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-2xl font-bold mb-2">
+                <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-3xl font-bold mb-2">
                   {p.name}
                 </div>
-                <div style={{ color: C.mute, fontFamily: FONT_BODY }} className="text-sm leading-relaxed">
+                <div style={{ color: C.mute, fontFamily: FONT_BODY }} className="text-base leading-relaxed">
                   {p.result}
                 </div>
               </div>
@@ -1069,7 +1069,7 @@ function HomePage({ setPage }) {
       {/* OFF DUTY */}
       <div className="max-w-5xl mx-auto px-5 pb-20">
         <Reveal>
-          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-5">
+          <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-sm tracking-[0.2em] mb-5">
             OFF DUTY
           </div>
           <HobbiesStrip />
