@@ -3,13 +3,16 @@ import {
   Mail,
   ArrowUpRight,
   MapPin,
-  Mountain,
   Car,
   Trophy,
   Target,
   Gamepad2,
   Radio,
   X,
+  Zap,
+  Brain,
+  Globe,
+  Flag,
 } from "lucide-react";
 import vatsalPhoto from "./assets/vatsal.jpg";
 
@@ -195,7 +198,7 @@ const EDUCATION = [
 ];
 
 const HOBBIES = [
-  { icon: Mountain, label: "EXTREME SPORTS", note: "chasing the edge" },
+  { icon: Flag, label: "FORMULA 1", note: "Ferrari or nothing" },
   { icon: Car, label: "CARS", note: "anything with a redline" },
   { icon: Trophy, label: "FOOTBALL", note: "plays casually, watches religiously" },
   { icon: Target, label: "BADMINTON", note: "weekend rallies" },
@@ -464,6 +467,7 @@ function StatusBar() {
 function NavBar({ page, setPage }) {
   const items = [
     { id: "home", label: "HOME" },
+    { id: "about", label: "ABOUT" },
     { id: "projects", label: "PROJECTS" },
     { id: "experience", label: "EXPERIENCE" },
   ];
@@ -1079,6 +1083,262 @@ function HomePage({ setPage }) {
   );
 }
 
+const JOURNEY = [
+  {
+    year: "2018",
+    title: "Mumbai → CS",
+    body: "Grew up curious about how things worked under the hood. Started pulling apart code the way some people pull apart engines. Studied Information Technology at the University of Mumbai, spent more time on side projects than coursework.",
+  },
+  {
+    year: "2021",
+    title: "First Real System",
+    body: "Joined Gupshup as a solutions engineer intern. First week I was debugging live OAuth failures for enterprise banking clients at 11pm. Second month, I was the one they called when things broke. By the end I was building production systems solo. That internship became three years.",
+  },
+  {
+    year: "2023",
+    title: "The Rabbit Hole",
+    body: "Spent a weekend debugging a persistent BIOS firmware bug on my laptop — an fTPM corruption that no one had cleanly documented. Flashed BIOS updates, dug into AMD Platform Security Processor internals, hit a non-booting state at 2am, and recovered it. Took three days. The bug was essentially unfixable without a hardware revision. That weekend taught me more about how computers actually work than any course. It confirmed something: I like problems where the internet doesn't have the answer yet.",
+  },
+  {
+    year: "2024",
+    title: "Boston, Masters, Agents",
+    body: "Moved to Boston for an MS at Northeastern. Spent the year building multi-agent AI pipelines, LLM evaluation frameworks, and shipping a live AI assistant used in a real course. Finished May 2026. Now looking for the next thing.",
+  },
+];
+
+const EXCITES = [
+  {
+    icon: Zap,
+    tone: C.ferrari,
+    title: "Systems at scale",
+    body: "The engineering that happens when good enough stops being enough. Latency, throughput, failure modes — the problems that only show up under real load.",
+  },
+  {
+    icon: Brain,
+    tone: C.redbullLight,
+    title: "AI that reasons",
+    body: "Not autocomplete. Agents that plan, evaluate their own output, detect when they're wrong, and recover. The eval and reliability layer is where the real work is.",
+  },
+  {
+    icon: Globe,
+    tone: C.ferrari,
+    title: "Products that reach people",
+    body: "I want to build things that run in the real world, not demos. Systems that enterprise clients depend on daily, where downtime has a cost.",
+  },
+];
+
+const CONTACTS = [
+  {
+    icon: Mail,
+    tone: C.ferrari,
+    label: "EMAIL",
+    value: "naikvatsal7@gmail.com",
+    href: "mailto:naikvatsal7@gmail.com",
+    newTab: false,
+  },
+  {
+    icon: Linkedin,
+    tone: C.redbullLight,
+    label: "LINKEDIN",
+    value: "linkedin.com/in/vatsalsnaik",
+    href: "https://linkedin.com/in/vatsalsnaik",
+    newTab: true,
+  },
+  {
+    icon: Github,
+    tone: C.mute,
+    label: "GITHUB",
+    value: "github.com/naik-vatsal",
+    href: "https://github.com/naik-vatsal",
+    newTab: true,
+  },
+];
+
+function AboutPage() {
+  return (
+    <div className="max-w-5xl mx-auto px-5">
+      {/* SECTION 1 — OVERVIEW */}
+      <section className="py-16 sm:py-20">
+        <Reveal>
+          <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-5">
+            OVERVIEW
+          </div>
+          <p
+            style={{ color: C.paper, fontFamily: FONT_BODY }}
+            className="text-xl sm:text-2xl leading-relaxed max-w-2xl"
+          >
+            I'm a backend and AI engineer. I spend my days building systems that
+            process real data at real scale and don't go down when they
+            shouldn't. I've been the only engineer on platforms serving millions
+            of messages to enterprise clients in fintech and banking. Now I'm
+            building AI systems that actually reason — not just autocomplete.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* SECTION 2 — JOURNEY */}
+      <section className="py-16 sm:py-20">
+        <Reveal>
+          <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest mb-2">
+            JOURNEY
+          </div>
+          <h2
+            style={{ fontFamily: FONT_DISPLAY, color: C.paper }}
+            className="text-4xl sm:text-5xl font-extrabold mb-12"
+          >
+            HOW I GOT HERE
+          </h2>
+        </Reveal>
+
+        <div className="relative">
+          <div
+            style={{ background: C.line, left: 5 }}
+            className="absolute top-2 bottom-2 w-px hidden sm:block"
+          />
+          <div className="space-y-10">
+            {JOURNEY.map((m, i) => (
+              <Reveal key={m.year} delay={i * 0.07}>
+                <div
+                  className="relative card-lift p-4 sm:p-5 sm:pl-10"
+                  style={{ background: C.panel }}
+                >
+                  <span
+                    style={{ background: C.ferrari, top: 6 }}
+                    className="absolute left-0 hidden sm:block w-[11px] h-[11px]"
+                  />
+                  <div style={{ fontFamily: FONT_MONO, color: C.muteDim }} className="text-xs tracking-widest mb-1">
+                    {m.year}
+                  </div>
+                  <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-xl sm:text-2xl font-bold mb-2">
+                    {m.title}
+                  </div>
+                  <p style={{ color: C.mute, fontFamily: FONT_BODY }} className="text-sm leading-relaxed max-w-xl">
+                    {m.body}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 3 — WHAT EXCITES ME */}
+      <section className="py-16 sm:py-20">
+        <Reveal>
+          <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
+            WHAT EXCITES ME
+          </div>
+          <h2
+            style={{ fontFamily: FONT_DISPLAY, color: C.paper }}
+            className="text-4xl sm:text-5xl font-extrabold mb-8"
+          >
+            THE INTERESTING PROBLEMS
+          </h2>
+        </Reveal>
+        <Reveal>
+          <div className="grid sm:grid-cols-3 gap-px" style={{ background: C.line }}>
+            {EXCITES.map((e) => {
+              const Icon = e.icon;
+              return (
+                <div key={e.title} style={{ background: C.panel }} className="p-6 flex flex-col gap-3 card-lift">
+                  <Icon size={22} style={{ color: e.tone }} />
+                  <div style={{ fontFamily: FONT_DISPLAY, color: C.paper }} className="text-2xl font-bold">
+                    {e.title}
+                  </div>
+                  <p style={{ color: C.mute, fontFamily: FONT_BODY }} className="text-sm leading-relaxed">
+                    {e.body}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* SECTION 4 — CURRENTLY */}
+      <section className="py-16 sm:py-20">
+        <Reveal>
+          <div style={{ fontFamily: FONT_MONO, color: C.ferrari }} className="text-xs tracking-widest mb-8">
+            CURRENTLY
+          </div>
+          <div className="grid sm:grid-cols-2 gap-8">
+            <div
+              style={{ fontFamily: FONT_DISPLAY, color: C.paper }}
+              className="text-3xl sm:text-4xl font-extrabold leading-tight"
+            >
+              Looking for backend and AI engineering roles.
+            </div>
+            <p style={{ color: C.mute, fontFamily: FONT_BODY }} className="text-base leading-relaxed">
+              Actively targeting fintech, AI infrastructure, and any team where
+              the engineering bar is high and ownership is real. Based in Boston,
+              open to relocating. On F-1 OPT with STEM extension, ~3 years work
+              authorization.
+            </p>
+          </div>
+          <div className="flex gap-3 flex-wrap mt-6">
+            <Chip tone="ferrari">OPEN TO WORK</Chip>
+            <Chip tone="mute">BOSTON, MA</Chip>
+            <Chip tone="redbull">F-1 OPT / STEM</Chip>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* SECTION 5 — CONTACT */}
+      <section className="py-16 sm:py-20">
+        <Reveal>
+          <div style={{ fontFamily: FONT_MONO, color: C.redbullLight }} className="text-xs tracking-widest mb-2">
+            CONTACT
+          </div>
+          <h2
+            style={{ fontFamily: FONT_DISPLAY, color: C.paper }}
+            className="text-4xl sm:text-5xl font-extrabold mb-8"
+          >
+            GET IN TOUCH
+          </h2>
+
+          <div>
+            {CONTACTS.map((c) => {
+              const Icon = c.icon;
+              return (
+                <div
+                  key={c.label}
+                  className="flex items-center gap-4 py-4"
+                  style={{ borderBottom: `1px solid ${C.line}` }}
+                >
+                  <Icon size={18} style={{ color: c.tone }} />
+                  <span
+                    style={{ fontFamily: FONT_MONO, color: C.mute }}
+                    className="text-xs tracking-widest w-20 sm:w-24 shrink-0"
+                  >
+                    {c.label}
+                  </span>
+                  <a
+                    href={c.href}
+                    {...(c.newTab ? { target: "_blank", rel: "noreferrer" } : {})}
+                    className="contact-value text-lg"
+                    style={{ color: C.paper, fontFamily: FONT_BODY }}
+                  >
+                    {c.value}
+                  </a>
+                </div>
+              );
+            })}
+          </div>
+
+          <a
+            href="mailto:naikvatsal7@gmail.com"
+            style={{ background: C.ferrari, color: C.paper, fontFamily: FONT_MONO }}
+            className="inline-flex items-center gap-3 px-8 py-4 text-sm tracking-widest hover:brightness-110 transition mt-8"
+          >
+            LET'S BUILD SOMETHING
+            <ArrowUpRight size={16} />
+          </a>
+        </Reveal>
+      </section>
+    </div>
+  );
+}
+
 function ProjectsPage() {
   const [open, setOpen] = useState(null);
   return (
@@ -1273,6 +1533,8 @@ export default function App() {
           outline: 2px solid ${C.ferrari};
           outline-offset: 2px;
         }
+        a.contact-value { transition: color 0.2s ease; }
+        a.contact-value:hover { color: ${C.ferrari}; }
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.25; }
@@ -1369,6 +1631,7 @@ export default function App() {
 
       <div key={page} className="page-enter">
         {page === "home" && <HomePage setPage={setPage} />}
+        {page === "about" && <AboutPage />}
         {page === "projects" && <ProjectsPage />}
         {page === "experience" && <ExperiencePage />}
       </div>
