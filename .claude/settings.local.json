@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(vercel --version)",
+      "PowerShell(npm run build)",
+      "PowerShell($p = Start-Process npm -ArgumentList \"run\",\"dev\" -NoNewWindow -PassThru -RedirectStandardOutput \"dev.log\" -RedirectStandardError \"dev.err.log\"; Start-Sleep -Seconds 6; $body = \\(Invoke-WebRequest -Uri \"http://localhost:5173/\" -UseBasicParsing\\).Content; $main = \\(Invoke-WebRequest -Uri \"http://localhost:5173/src/main.jsx\" -UseBasicParsing\\).StatusCode; Write-Host \"ROOT_HAS_DIV:\" \\($body -match 'id=\"root\"'\\); Write-Host \"MAIN_STATUS:\" $main; Stop-Process -Id $p.Id -Force; Get-Content dev.err.log -Tail 5)",
+      "Bash(npm run *)",
+      "Bash(curl -s -o /dev/null -w \"preview_status:%{http_code}\\\\n\" http://localhost:4173/)",
+      "Bash(curl -s http://localhost:4173/)",
+      "Bash(kill %1)"
+    ]
+  }
+}
